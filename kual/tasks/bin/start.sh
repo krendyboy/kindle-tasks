@@ -27,7 +27,7 @@ fi
 
 # зберегти стан, щоб stop.sh його відновив
 lipc-get-prop com.lab126.cmd wirelessEnable >$RUN/wifi_was 2>/dev/null
-lipc-set-prop com.lab126.powerd preventScreenSaver 1
+# preventScreenSaver блокує й кнопку живлення, тому лише скидаємо таймер сну (keepalive)
 lipc-set-prop com.lab126.cmd wirelessEnable 1
 log "start: pid $$, wifi_was=$(cat $RUN/wifi_was)"
 
@@ -73,6 +73,11 @@ sleep 3
 eips -c >/dev/null 2>&1
 note "Tasks: loading..."
 
+# перевірка keepalive: залишок до сну до і після скидання
+log "powerd до: $(lipc-get-prop com.lab126.powerd status | grep Remaining)"
+lipc-set-prop com.lab126.powerd touchScreenSaverTimeout 1 2>>$LOG
+log "powerd після: $(lipc-get-prop com.lab126.powerd status | grep Remaining)"
+
 n=0
 last=""
 while true; do
@@ -93,7 +98,13 @@ while true; do
 		# лишаємо останню картинку, внизу — позначка про збій
 		note "Tasks: update failed $(date +%H:%M)"
 	fi
-	sleep $INTERVAL &
-	echo $! >$RUN/sleep.pid
-	wait $!
+	# чекаємо INTERVAL, скидаючи таймер автосну щохвилини
+	t=0
+	while [ $t -lt $INTERVAL ]; do
+		lipc-set-prop com.lab126.powerd touchScreenSaverTimeout 1 2>/dev/null
+		sleep 60 &
+		echo $! >$RUN/sleep.pid
+		wait $!
+		t=$((t+60))
+	done
 done
