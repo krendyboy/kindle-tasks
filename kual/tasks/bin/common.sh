@@ -10,7 +10,7 @@ URL=https://krendyboy.github.io/kindle-tasks/tasks.bin
 KEY=
 INTERVAL=300     # як часто перевіряти, с
 FULL_EVERY=4     # повний рефреш (з миганням) кожне N-те оновлення картинки
-KIOSK=1          # 1 = на час показу зупиняти інтерфейс Kindle (lab126_gui)
+KIOSK=0          # 1 = на час показу зупиняти інтерфейс Kindle (lab126_gui)
 [ -f "$CONF" ] && . "$CONF"
 
 log() {

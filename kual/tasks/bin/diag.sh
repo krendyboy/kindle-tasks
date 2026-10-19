@@ -50,6 +50,19 @@ ls -la /etc/ssl/certs/ca-certificates.crt /etc/ssl/cert.pem /etc/pki/tls/certs/c
 sec "eips"
 run eips -i
 
+sec "GUI / upstart (лише читання)"
+ls -la $(command -v setsid) 2>&1
+ls /etc/upstart/ 2>&1 | tr '\n' ' '; echo
+for f in /etc/upstart/lab126_gui.conf /etc/upstart/framework.conf; do
+	echo "----- $f"; cat "$f" 2>&1
+done
+echo "----- initctl list"
+initctl list 2>&1 | head -80
+echo "----- ps"
+ps -o pid,ppid,pgid,sid,args 2>/dev/null || ps 2>&1 | head -80
+echo "----- /proc/bus/input/devices"
+cat /proc/bus/input/devices
+
 sec "extensions on /mnt/us"
 ls /mnt/us/extensions
 
