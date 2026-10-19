@@ -6,6 +6,7 @@
 
 # KUAL не чекає на довгі дії — від'єднуємося у фон
 if [ "$1" != "run" ]; then
+	log "start: викликано з KUAL"
 	/bin/sh "$0" run >/dev/null 2>&1 &
 	exit 0
 fi
