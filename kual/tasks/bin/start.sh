@@ -1,13 +1,19 @@
 #!/bin/sh
 # Tasks: показ дашборда на весь екран з оновленням кожні INTERVAL с.
-# Вихід: кнопка живлення (powerd goingToScreenSaver) або KUAL → Tasks → Stop.
+# Поки дашборд на екрані, інтерфейс Kindle (lab126_gui) зупинено, щоб він не малював поверх.
+# Вихід: дотик до екрана або кнопка живлення → stop.sh знову запускає інтерфейс.
 
 . /mnt/us/extensions/tasks/bin/common.sh
 
 # KUAL не чекає на довгі дії — від'єднуємося у фон
 if [ "$1" != "run" ]; then
 	log "start: викликано з KUAL"
-	/bin/sh "$0" run >/dev/null 2>&1 &
+	# окрема сесія, щоб зупинка lab126_gui (а з ним і KUAL) не вбила цикл
+	if command -v setsid >/dev/null 2>&1; then
+		setsid /bin/sh "$0" run >/dev/null 2>&1 </dev/null &
+	else
+		nohup /bin/sh "$0" run >/dev/null 2>&1 </dev/null &
+	fi
 	exit 0
 fi
 
@@ -38,6 +44,48 @@ log "start: pid $$, wifi_was=$(cat $RUN/wifi_was)"
 	/bin/sh $EXT/bin/stop.sh
 ) &
 echo $! >$RUN/listener.pid
+
+find_touch() {
+	name=""
+	while read -r l; do
+		case "$l" in
+		"N: Name="*) name=$(echo "$l" | tr 'A-Z' 'a-z') ;;
+		"H: Handlers="*)
+			case "$name" in
+			*touch*|*zforce*|*cyttsp*|*_ts*|*elan*) echo "$l" | grep -o 'event[0-9]*'; return ;;
+			esac ;;
+		esac
+	done </proc/bus/input/devices
+}
+
+# без setsid цикл живе в одній групі процесів з KUAL і загинув би разом з інтерфейсом
+if [ "$KIOSK" = "1" ] && ! command -v setsid >/dev/null 2>&1; then
+	log "kiosk: нема setsid — інтерфейс не зупиняю"
+	KIOSK=0
+fi
+
+if [ "$KIOSK" = "1" ]; then
+	log "input: $(grep '^N: Name' /proc/bus/input/devices | tr '\n' ';')"
+	stop lab126_gui >>$LOG 2>&1
+	rc=$?
+	log "stop lab126_gui rc=$rc"
+	[ $rc -eq 0 ] && touch $RUN/gui_stopped
+
+	# дотик до екрана → вихід (інтерфейс зупинено, тож дотики більше нікуди не йдуть)
+	TOUCH=$(find_touch)
+	if [ -n "$TOUCH" ]; then
+		(
+			sleep 5  # пропустити залишки тапу по KUAL
+			dd if=/dev/input/$TOUCH of=/dev/null bs=16 count=1 2>/dev/null
+			log "touch: вихід"
+			/bin/sh $EXT/bin/stop.sh
+		) &
+		echo $! >$RUN/touch.pid
+		log "touch exit на /dev/input/$TOUCH"
+	else
+		log "touch: сенсор не знайдено, вихід лише кнопкою живлення"
+	fi
+fi
 
 wait_wifi() {
 	i=0
