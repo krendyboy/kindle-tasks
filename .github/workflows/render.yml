@@ -1,0 +1,45 @@
+name: render
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow==12.2.0
+      - name: Render
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          TASKS_KEY: ${{ secrets.TASKS_KEY }}
+        run: |
+          test -n "$TASKS_KEY" || { echo "TASKS_KEY secret missing"; exit 1; }
+          python render.py --out out
+          # публікуємо лише зашифрований файл
+          mkdir site
+          mv out/tasks.bin site/tasks.bin
+          date -u +%s > site/stamp.txt
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+          retention-days: 1
+      - uses: actions/deploy-pages@v4

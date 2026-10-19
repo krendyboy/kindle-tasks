@@ -1,0 +1,5 @@
+out/
+secrets/
+__pycache__/
+.DS_Store
+kual/tasks/tasks.conf

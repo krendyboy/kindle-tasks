@@ -1,0 +1,12 @@
+{
+	"items": [
+		{
+			"name": "Tasks",
+			"priority": 0,
+			"items": [
+				{"name": "Diagnostics", "priority": 1, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/diag.sh", "exitmenu": false, "status": false},
+				{"name": "Test image", "priority": 2, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/testimg.sh", "exitmenu": true, "status": false}
+			]
+		}
+	]
+}
