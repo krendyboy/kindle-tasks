@@ -4,8 +4,10 @@
 			"name": "Tasks",
 			"priority": 0,
 			"items": [
-				{"name": "Diagnostics", "priority": 1, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/diag.sh", "exitmenu": false, "status": false},
-				{"name": "Test image", "priority": 2, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/testimg.sh", "exitmenu": true, "status": false}
+				{"name": "Start", "priority": 1, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/start.sh", "exitmenu": true, "status": false},
+				{"name": "Stop", "priority": 2, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/stop.sh", "exitmenu": false, "status": false},
+				{"name": "Diagnostics", "priority": 3, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/diag.sh", "exitmenu": false, "status": false},
+				{"name": "Test image", "priority": 4, "action": "/bin/sh", "params": "/mnt/us/extensions/tasks/bin/testimg.sh", "exitmenu": true, "status": false}
 			]
 		}
 	]
