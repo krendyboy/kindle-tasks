@@ -61,7 +61,7 @@ fetch() {
 	fi
 	[ $rc -eq 0 ] || { log "fetch: curl rc=$rc"; return 1; }
 	iv=$(head -c 16 $RUN/tasks.bin | od -An -tx1 | tr -d ' \n')
-	tail -c +17 $RUN/tasks.bin | openssl enc -d -aes-256-cbc -K "$KEY" -iv "$iv" -out $RUN/new.png 2>>$LOG \
+	tail -c +17 $RUN/tasks.bin | OPENSSL_CONF=/dev/null openssl enc -d -aes-256-cbc -K "$KEY" -iv "$iv" -out $RUN/new.png 2>>$LOG \
 		|| { log "fetch: розшифрування не вдалось"; return 1; }
 	[ "$(head -c 4 $RUN/new.png | od -An -tx1 | tr -d ' \n')" = "89504e47" ] \
 		|| { log "fetch: не PNG"; return 1; }
